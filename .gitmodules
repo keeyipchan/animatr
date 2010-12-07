@@ -1,0 +1,24 @@
+[submodule "public/jquery"]
+	path = public/jquery
+	url = git@github.com:jupiterjs/jquerymx.git
+[submodule "public/documentjs"]
+	path = public/documentjs
+	url = git@github.com:jupiterjs/documentjs.git
+[submodule "public/steal"]
+	path = public/steal
+	url = git@github.com:jupiterjs/steal.git
+[submodule "public/funcunit"]
+	path = public/funcunit
+	url = git@github.com:jupiterjs/funcunit.git
+[submodule "public/raphael"]
+	path = public/raphael
+	url = https://github.com/DmitryBaranovskiy/raphael.git
+[submodule "public/jqueryui"]
+	path = public/jqueryui
+	url = https://github.com/jquery/jquery-ui.git
+[submodule "public/rails"]
+	path = public/rails
+	url = https://github.com/rails/rails.git
+[submodule "public/redis"]
+	path = public/redis
+	url = https://github.com/antirez/redis.git
