@@ -1,0 +1,35 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN"
+   "http://www.w3.org/TR/html4/loose.dtd">
+
+<html lang="en">
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
+	<title>capi</title>
+	<meta name="generator" content="TextMate http://macromates.com/">
+	<meta name="author" content="Jeremy Kahn">
+	<!-- Date: 2010-12-07 -->
+	
+	<script src="capi.js"></script>
+</head>
+<body>
+
+	<canvas id="myCanvas">Plz stop using IE.</canvas>
+	
+	<script type="text/javascript">
+		var myCanvas = document.getElementById('myCanvas');
+		
+		canvas =  capi(myCanvas, {
+			styles : {
+				'height':  '300px',
+				'width': '500px',
+				'background': '#000'
+			}});
+			
+		console.dir(canvas);
+		
+		canvas.capi.start();
+		
+	</script>
+
+</body>
+</html>
