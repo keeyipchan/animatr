@@ -25,6 +25,17 @@
 				'background': '#000'
 			}});
 			
+			
+		// Testing, testing... is this thing on?
+		canvas.capi.push(function(ctx){
+			
+			ctx.beginPath();
+			ctx.arc(100, 100, 75, 0, Math.PI*2, true);
+			ctx.fillStyle = '#f0f';
+			ctx.fill();
+			ctx.closePath();
+		});
+			
 		console.dir(canvas);
 		
 		canvas.capi.start();
