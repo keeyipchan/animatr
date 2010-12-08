@@ -39,7 +39,7 @@ function capi(canvas, params){
 			}
 			
 			// The height and width of the canvas draw area do not sync
-			// up, so set those manually here
+			// up with the CSS height/width values, so set those manually here
 			capi.params.styles.height && setDimensionVal.call(this.el, 'height');
 			capi.params.styles.width && setDimensionVal.call(this.el, 'width');
 			
