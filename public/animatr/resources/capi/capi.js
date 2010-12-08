@@ -1,7 +1,7 @@
 /*  CAPI - Canvas API
  *  jeremyckahn@gmail.com
  * 
- * A lightweight wrapper and runtime for the HTML 5 cavnvas.
+ * A lightweight wrapper and runtime for the HTML 5 canvas.
  */
 
 
