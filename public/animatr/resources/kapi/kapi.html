@@ -36,11 +36,21 @@
 			
 			circle();
 		});
-			
-		canvas.kapi.start();
-		circle.keyframe();
 		
-		//console.dir(canvas);
+		canvas.kapi.start();
+		
+		// Testing the API.  Purposely out of order, to show it can be done.
+		circle.keyframe(0, {
+			prop: 'test0'
+		}).keyframe(5, {
+			prop: 'test5'
+		}).keyframe(2, {
+			prop: 'test2'
+		});
+		
+		console.dir(canvas.kapi);
+		
+		
 		
 	</script>
 

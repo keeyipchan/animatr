@@ -95,15 +95,42 @@ function kapi(canvas, params){
 			return this._drawList.push(func);
 		},
 		
+		// Sort the keyframe properties numerically.
+		_sortKeyframes: function(){
+			var _keyframes = {}, 
+				arr = [],
+				prop,
+				i;
+				
+			for (prop in this._keyframes){
+				arr.push(parseInt(prop, 10));
+			}
+			
+			arr.sort(function(a, b){
+				return a - b;
+			});
+			
+			for (i = 0; i < arr.length; i++){
+				_keyframes[arr[i] + ''] = this._keyframes[arr[i]];
+			}
+			
+			this._keyframes = _keyframes;
+		},
+		
 		_keyframize: function(implementation){
 			var self = this;
 			
 			// TODO:  keyframe() blows up if given a keyframeId with a string type.
 			// It should accept strings.
-			implementation.keyframe = function(keyframeId, state){
+			implementation.keyframe = function(keyframeId, stateObj){
 				if (typeof self._keyframes[keyframeId] == 'undefined'){
-					
+					self._keyframes[keyframeId] = [];
 				}
+				
+				self._keyframes[keyframeId].push(stateObj);
+				self._sortKeyframes();
+				
+				return implementation;
 			};
 			
 			return implementation;
