@@ -57,8 +57,12 @@ function kapi(canvas, params){
 			
 			// The height and width of the canvas draw area do not sync
 			// up with the CSS height/width values, so set those manually here
-			this._params.styles.height && setDimensionVal.call(this.el, 'height');
-			this._params.styles.width && setDimensionVal.call(this.el, 'width');
+			if (this._params.styles.height){
+				setDimensionVal.call(this.el, 'height');
+			}
+			if (this._params.styles.width){
+				setDimensionVal.call(this.el, 'width');
+			}
 			
 			return canvas;
 		},
@@ -96,7 +100,7 @@ function kapi(canvas, params){
 				self._loopPosition = self._loopLength / self._animationDuration;
 				
 				// Calculate the current frame of the loop
-				self._currentFrame = parseInt(self._loopPosition * self._params.fRate);
+				self._currentFrame = parseInt(self._loopPosition * self._params.fRate, 10);
 				
 				self.ctx.clearRect(0, 0, self.el.width, self.el.height);
 				self._update(self._currentFrame);
@@ -131,7 +135,9 @@ function kapi(canvas, params){
 				i;
 			
 			for (prop in this._keyframes){
-				arr.push(parseInt(prop, 10));
+				if (this._keyframes.hasOwnProperty(prop)){
+					arr.push(parseInt(prop, 10));
+				}
 			}
 			
 			// Sort and update the internal list of keyframe IDs
