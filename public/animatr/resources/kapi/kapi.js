@@ -12,7 +12,7 @@ function kapi(canvas, params){
 	
 	// Strip the 'px' from a style string and add it to the element directly
 	function setDimensionVal(dim){
-		this[dim] = this.style[dim].replace(/px/gi, '') || this.params[dim];
+		this[dim] = this.style[dim].replace(/px/gi, '') || this._params[dim];
 	}
 	
 	return {
@@ -22,33 +22,36 @@ function kapi(canvas, params){
 			// Augment the canvas element...
 			canvas.kapi = this;
 			
-			this.params = params || {};
+			this._params = params || {};
 			this.el = canvas;
 			this.ctx = canvas.getContext('2d');
 			
-			// Set some default values
-			this.params.fRate = this.params.fRate || 20;
+			// Set some default property values
+			this._params.fRate = this._params.fRate || 20;
 			this._drawList = [];
+			this._keyframes = {};
+			this._keyFrameIds = [];
+			this._animationDuration = 0;
+			
 			this._defaults = {
 				fillColor : '#f0f'
 			};
 			
 			this.state = {
-				fCount: 0
+				fCount : 0
 			};
 			
-			this._keyframes = {};
 			
-			for (style in this.params.styles){
-				if (this.params.styles.hasOwnProperty(style)){
-					this.el.style[style] = this.params.styles[style];
+			for (style in this._params.styles){
+				if (this._params.styles.hasOwnProperty(style)){
+					this.el.style[style] = this._params.styles[style];
 				}
 			}
 			
 			// The height and width of the canvas draw area do not sync
 			// up with the CSS height/width values, so set those manually here
-			this.params.styles.height && setDimensionVal.call(this.el, 'height');
-			this.params.styles.width && setDimensionVal.call(this.el, 'width');
+			this._params.styles.height && setDimensionVal.call(this.el, 'height');
+			this._params.styles.width && setDimensionVal.call(this.el, 'width');
 			
 			return canvas;
 		},
@@ -62,7 +65,7 @@ function kapi(canvas, params){
 		},
 		
 		stop: function(){
-			clearTimeout(this.updateHandle);
+			clearTimeout(this._updateHandle);
 		},
 		
 		update: function(){
@@ -70,13 +73,13 @@ function kapi(canvas, params){
 			
 			this.state.fCount++;
 			
-			this.updateHandle = setTimeout(function(){
+			this._updateHandle = setTimeout(function(){
 				self.ctx.clearRect(0, 0, self.el.width, self.el.height);
 				self._update();
 				self.update();
-			}, 1000 / this.params.fRate);
+			}, 1000 / this._params.fRate);
 			
-			return this.updateHandle;
+			return this._updateHandle;
 		},
 		
 		_update: function(){
@@ -101,19 +104,22 @@ function kapi(canvas, params){
 				arr = [],
 				prop,
 				i;
-				
+			
 			for (prop in this._keyframes){
 				arr.push(parseInt(prop, 10));
 			}
 			
-			arr.sort(function(a, b){
+			// Sort and update the internal list of keyframe IDs
+			this._keyFrameIds = arr.sort(function(a, b){
 				return a - b;
 			});
 			
+			// Store the ordered keyframes into a temporary object
 			for (i = 0; i < arr.length; i++){
 				_keyframes[arr[i] + ''] = this._keyframes[arr[i]];
 			}
 			
+			// Set the contents of the interal _keyframes object to that of the ordered temporary oject
 			this._keyframes = _keyframes;
 		},
 		
@@ -130,6 +136,10 @@ function kapi(canvas, params){
 				self._keyframes[keyframeId].push(stateObj);
 				self._sortKeyframes();
 				
+				// Calculate and update the number of seconds this animation will run for
+				self._animationDuration = 
+					self._keyFrameIds[self._keyFrameIds.length - 1] / self._params.fRate;
+				
 				return implementation;
 			};
 			
@@ -138,7 +148,8 @@ function kapi(canvas, params){
 		
 		circle: function(params){
 			var self = this,
-				ctx = this.ctx,
+				ctx = params.context || this.ctx,
+				
 				// TODO:  _circle's implementation is that of a bitmap.
 				// It should be an SVG.
 				_circle = function(){
