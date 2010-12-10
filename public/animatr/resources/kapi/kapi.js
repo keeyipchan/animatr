@@ -150,14 +150,14 @@ function kapi(canvas, params){
 				_keyframes[arr[i] + ''] = this._keyframes[arr[i]];
 			}
 			
-			// Set the contents of the interal _keyframes object to that of the ordered temporary oject
+			// Set the contents of the internal _keyframes object to that of the ordered temporary object
 			this._keyframes = _keyframes;
 		},
 		
 		_keyframize: function(implementation){
 			var self = this;
 			
-			// TODO:  keyframe() blows up if given a keyframeId with a string type.
+			// TODO:  keyframe() blows up if given a keyframeId that is a string.
 			// It should accept strings.
 			implementation.keyframe = function(keyframeId, stateObj){
 				if (typeof self._keyframes[keyframeId] == 'undefined'){
