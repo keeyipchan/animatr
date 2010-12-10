@@ -4,41 +4,43 @@
 <html lang="en">
 <head>
 	<meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-	<title>capi</title>
+	<title>kapi</title>
 	<meta name="generator" content="TextMate http://macromates.com/">
 	<meta name="author" content="Jeremy Kahn">
 	<!-- Date: 2010-12-07 -->
 	
-	<script src="capi.js"></script>
+	<script src="kapi.js"></script>
 </head>
 <body>
 
 	<canvas id="myCanvas">Plz stop using IE.</canvas>
 	
 	<script type="text/javascript">
-		var myCanvas = document.getElementById('myCanvas');
-		
-		canvas =  capi(myCanvas, {
-			styles : {
-				'height':  '300px',
-				'width': '500px',
-				'background': '#000'
-			}});
-			
+				
+		var canvas = kapi(document.getElementById('myCanvas'), {
+				styles : {
+					'height':  '300px',
+					'width': '500px',
+					'background': '#000'
+				}
+			}),
+			circle = canvas.kapi.circle({
+				x : 50,
+				y : 50,
+				radius : 50,
+				color : '#0f0'
+			});
 			
 		// Testing, testing... is this thing on?
-		canvas.capi.push(function(ctx){
+		canvas.kapi.push(function(ctx){
 			
-			ctx.beginPath();
-			ctx.arc(100, 100, 75, 0, Math.PI*2, true);
-			ctx.fillStyle = '#f0f';
-			ctx.fill();
-			ctx.closePath();
+			circle();
 		});
 			
-		console.dir(canvas);
+		canvas.kapi.start();
+		circle.keyframe();
 		
-		canvas.capi.start();
+		console.dir(canvas);
 		
 	</script>
 
