@@ -10,9 +10,16 @@ function kapi(canvas, params){
 	
 	var version = '0.1';
 	
+	/* Define some useful methods that are private to Kapi. */
+	
 	// Strip the 'px' from a style string and add it to the element directly
+	// Meant to be called with Function.call()
 	function setDimensionVal(dim){
 		this[dim] = this.style[dim].replace(/px/gi, '') || this._params[dim];
+	}
+	
+	function now(){
+		return new Date();
 	}
 	
 	return {
@@ -61,6 +68,7 @@ function kapi(canvas, params){
 		},
 		
 		start: function(){
+			this._loopStartTime = this._startTime = now();
 			this.update();
 		},
 		
@@ -68,21 +76,38 @@ function kapi(canvas, params){
 			clearTimeout(this._updateHandle);
 		},
 		
+		// Handle high-level frame management logic
 		update: function(){
 			var self = this;
 			
 			this.state.fCount++;
 			
 			this._updateHandle = setTimeout(function(){
+				
+				self._loopLength = now() - self._loopStartTime;
+				
+				// Start the loop over if need be.
+				if (self._loopLength > self._animationDuration){
+					self._loopStartTime = now();
+					self._loopLength -= self._animationDuration;	
+				}
+				
+				// Determine where we are in the loop
+				self._loopPosition = self._loopLength / self._animationDuration;
+				
+				// Calculate the current frame of the loop
+				self._currentFrame = parseInt(self._loopPosition * self._params.fRate);
+				
 				self.ctx.clearRect(0, 0, self.el.width, self.el.height);
-				self._update();
+				self._update(self._currentFrame);
 				self.update();
 			}, 1000 / this._params.fRate);
 			
 			return this._updateHandle;
 		},
 		
-		_update: function(){
+		// Handle low-level drawing logic
+		_update: function(currentFrame){
 			var i;
 			
 			for (i = 0; i < this._drawList.length; i++){
@@ -138,7 +163,7 @@ function kapi(canvas, params){
 				
 				// Calculate and update the number of seconds this animation will run for
 				self._animationDuration = 
-					self._keyFrameIds[self._keyFrameIds.length - 1] / self._params.fRate;
+					1000 * (self._keyFrameIds[self._keyFrameIds.length - 1] / self._params.fRate);
 				
 				return implementation;
 			};
