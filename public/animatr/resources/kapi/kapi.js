@@ -37,7 +37,7 @@ function kapi(canvas, params){
 				fCount: 0
 			};
 			
-			this._keyframes = [];
+			this._keyframes = {};
 			
 			for (style in this.params.styles){
 				if (this.params.styles.hasOwnProperty(style)){
@@ -101,7 +101,9 @@ function kapi(canvas, params){
 			// TODO:  keyframe() blows up if given a keyframeId with a string type.
 			// It should accept strings.
 			implementation.keyframe = function(keyframeId, state){
-				
+				if (typeof self._keyframes[keyframeId] == 'undefined'){
+					
+				}
 			};
 			
 			return implementation;
