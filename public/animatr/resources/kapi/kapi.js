@@ -72,7 +72,7 @@ function kapi(canvas, params){
 			
 			// Initialize some internal properties
 			this._drawList = [];
-			this._keyFrameIds = [];
+			this._keyframeIds = [];
 			this._keyframes = {};
 			this._objStateIndex = {};
 			
@@ -135,7 +135,7 @@ function kapi(canvas, params){
 				self._loopPosition = self._loopLength / self._animationDuration;
 				
 				// Calculate the current frame of the loop
-				self._currentFrame = parseInt(self._loopPosition * self._keyFrameIds[self._keyFrameIds.length - 1], 10);
+				self._currentFrame = parseInt(self._loopPosition * self._keyframeIds[self._keyframeIds.length - 1], 10);
 				
 				self.ctx.clearRect(0, 0, self.el.width, self.el.height);
 				self._update(self._currentFrame);
@@ -192,7 +192,7 @@ function kapi(canvas, params){
 				
 				// Calculate and update the number of seconds this animation will run for
 				self._animationDuration = 
-					1000 * (self._keyFrameIds[self._keyFrameIds.length - 1] / self._params.fRate);
+					1000 * (self._keyframeIds[self._keyframeIds.length - 1] / self._params.fRate);
 				
 				return implementationObj;
 			};
@@ -215,14 +215,14 @@ function kapi(canvas, params){
 		_updateKeyframeIdsList: function(keyframeId){
 			var i;
 			
-			for (i = 0; i < this._keyFrameIds.length; i++){
-				if (this._keyFrameIds[i] === keyframeId){
+			for (i = 0; i < this._keyframeIds.length; i++){
+				if (this._keyframeIds[i] === keyframeId){
 					return;
 				}
 			}
 			
-			this._keyFrameIds.push(keyframeId);
-			sortArrayNumerically(this._keyFrameIds);
+			this._keyframeIds.push(keyframeId);
+			sortArrayNumerically(this._keyframeIds);
 		},
 		
 		// Sort the keyframe properties numerically.
@@ -274,7 +274,7 @@ function kapi(canvas, params){
 			index = this._objStateIndex[implementationObj.id];
 			
 			if (typeof params.add !== 'undefined'){
-				index.pop(params.add);
+				index.push(params.add);
 				sortArrayNumerically(index);
 			}
 			
