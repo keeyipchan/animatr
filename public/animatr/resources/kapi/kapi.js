@@ -19,7 +19,31 @@ function kapi(canvas, params){
 	}
 	
 	function now(){
-		return new Date();
+		return + new Date();
+	}
+	
+	// Adapted from the book, "JavaScript Patterns" by Stoyan Stefanov
+	function extend(child, parent, doOverwrite){
+		var i, 
+			toStr = Object.prototype.toString,
+			astr = '[object Array]';
+			
+		child = child || {};
+		
+		for (i in parent){
+			if (parent.hasOwnProperty(i)){
+				if (typeof parent[i] === 'object'){
+					if (!child[i] || doOverwrite){
+						child[i] = (toStr.call(parent[i]) === astr) ? [] : {};
+					}
+					extend(child[i], parent[i]);
+				} else {
+					if (!child[i] || doOverwrite){
+						child[i] = parent[i];
+					}
+				}
+			}
+		}
 	}
 	
 	return {
@@ -160,12 +184,22 @@ function kapi(canvas, params){
 			// TODO:  keyframe() blows up if given a keyframeId that is a string.
 			// It should accept strings.
 			implementation.keyframe = function(keyframeId, stateObj){
-				if (typeof self._keyframes[keyframeId] == 'undefined'){
-					self._keyframes[keyframeId] = [];
+				extend(stateObj, implementation.params);
+				
+				// Make really really sure the id is unique, if one is not provided
+				if (typeof implementation.id === 'undefined'){
+					implementation.id = implementation.params.id 
+										|| implementation.params.name 
+										|| parseInt(('' + Math.random()).substr(2), 10) + now();
 				}
 				
-				self._keyframes[keyframeId].push(stateObj);
+				if (typeof self._keyframes[keyframeId] == 'undefined'){
+					self._keyframes[keyframeId] = {};
+				}
+				
+				self._keyframes[keyframeId][implementation.id] = stateObj;
 				self._sortKeyframes();
+				self._normalizeObjectAcrossKeyframes(implementation.id);
 				
 				// Calculate and update the number of seconds this animation will run for
 				self._animationDuration = 
@@ -174,7 +208,26 @@ function kapi(canvas, params){
 				return implementation;
 			};
 			
+			// Not all that useful, just some syntactical sugar.
+			implementation.draw = function(){
+				return implementation();
+			};
+			
 			return implementation;
+		},
+		
+		_normalizeObjectAcrossKeyframes: function(keyframedObjId){
+			var state, stateProp, prevState, _temp = {};
+			
+			for (state in this._keyframes){
+				if (prevState){
+					extend(
+						this._keyframes[state][keyframedObjId],
+						this._keyframes[prevState][keyframedObjId]);
+				}
+				
+				prevState = state;
+			}
 		},
 		
 		circle: function(params){
@@ -197,6 +250,8 @@ function kapi(canvas, params){
 					ctx.fill();
 					ctx.closePath();
 				};
+				
+				_circle.params = params;
 			
 			return this._keyframize(_circle);
 		}

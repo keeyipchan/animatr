@@ -25,6 +25,7 @@
 				}
 			}),
 			circle = canvas.kapi.circle({
+				name : 'myCircle',
 				x : 50,
 				y : 50,
 				radius : 50,
@@ -41,16 +42,14 @@
 		
 		// Testing the API.  Purposely out of order, to show it can be done.
 		circle.keyframe(0, {
-			prop: 'test0'
+			x: 120
 		}).keyframe(5, {
-			prop: 'test5'
+			x: 30
 		}).keyframe(20, {
-			prop: 'test20'
+			x: 75
 		});
 		
 		console.dir(canvas.kapi);
-		
-		
 		
 	</script>
 
