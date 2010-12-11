@@ -149,13 +149,36 @@ function kapi(canvas, params){
 		_update: function(currentFrame){
 			var i;
 			
+			this._calculateCurrentFrameStateProperties();
+			
 			for (i = 0; i < this._drawList.length; i++){
 				this._drawList[i].call(this, this.ctx);
 			}
 		},
 		
 		_calculateCurrentFrameStateProperties: function(stateObj){
-			
+			var self = this,
+				latestKeyframeId = ((function(){
+					var i;
+					
+					for (i = self._keyframeIds.length - 1; i >= 0; i--){
+						if (self._keyframeIds[i] < self._currentFrame){
+							if (i === self._keyframeIds.length - 1){
+								return 0;
+							} else {
+								return i;
+							}
+						}
+					}
+					
+					return self._keyframeIds.length - 1;
+				})()),
+				nextKeyframeId = ((function(){
+					return latestKeyframeId === self._keyframeIds.length - 1
+						? 0
+						: latestKeyframeId + 1;
+				})());
+				
 		},
 		
 		pop: function(){

@@ -18,6 +18,7 @@
 	<script type="text/javascript">
 				
 		var canvas = kapi(document.getElementById('myCanvas'), {
+				fRate : 20,
 				styles : {
 					'height':  '300px',
 					'width': '500px',
@@ -53,11 +54,11 @@
 			x: 75
 		});
 		
-		circle2.keyframe(15, {
+		/*circle2.keyframe(15, {
 			color: '#fff'
 		}).keyframe(30, {
 			color: '#000'
-		});
+		});*/
 		
 		console.dir(canvas.kapi);
 		
