@@ -217,7 +217,7 @@ function kapi(canvas, params){
 		},
 		
 		_normalizeObjectAcrossKeyframes: function(keyframedObjId){
-			var state, stateProp, prevState, _temp = {};
+			var state, prevState;
 			
 			for (state in this._keyframes){
 				if (prevState){
