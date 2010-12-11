@@ -8,7 +8,11 @@
 // kapi works by augmenting the Canvas element on the DOM.
 function kapi(canvas, params){
 	
-	var version = '0.1';
+	var version = '0.1',
+		defaults = {
+			fillColor : '#f0f',
+			fRate : 20
+		};
 	
 	/* Define some useful methods that are private to Kapi. */
 	
@@ -47,31 +51,29 @@ function kapi(canvas, params){
 	}
 	
 	return {
+		// init() is called immediately after this object is defined
 		init: function(canvas, params){
-			var style, kapi, p;
+			var style, kapi;
 			
-			// Augment the canvas element...
+			// Augment the canvas element
 			canvas.kapi = this;
 			
-			this._params = params || {};
+			params = params || {};
+			extend(params, defaults);
+			this._params = params;
 			this.el = canvas;
 			this.ctx = canvas.getContext('2d');
 			
 			// Set some default property values
-			this._params.fRate = this._params.fRate || 20;
+			//this._params.fRate = this._params.fRate || 20;
 			this._drawList = [];
 			this._keyframes = {};
 			this._keyFrameIds = [];
 			this._animationDuration = 0;
 			
-			this._defaults = {
-				fillColor : '#f0f'
-			};
-			
 			this.state = {
 				fCount : 0
 			};
-			
 			
 			for (style in this._params.styles){
 				if (this._params.styles.hasOwnProperty(style)){
@@ -81,11 +83,13 @@ function kapi(canvas, params){
 			
 			// The height and width of the canvas draw area do not sync
 			// up with the CSS height/width values, so set those manually here
-			if (this._params.styles.height){
-				setDimensionVal.call(this.el, 'height');
-			}
-			if (this._params.styles.width){
-				setDimensionVal.call(this.el, 'width');
+			if (this._params.styles){
+				if (this._params.styles.height){
+					setDimensionVal.call(this.el, 'height');
+				}
+				if (this._params.styles.width){
+					setDimensionVal.call(this.el, 'width');
+				}
 			}
 			
 			return canvas;
@@ -178,55 +182,62 @@ function kapi(canvas, params){
 			this._keyframes = _keyframes;
 		},
 		
-		_keyframize: function(implementation){
+		_keyframize: function(implementationObj){
 			var self = this;
 			
 			// TODO:  keyframe() blows up if given a keyframeId that is a string.
 			// It should accept strings.
-			implementation.keyframe = function(keyframeId, stateObj){
-				extend(stateObj, implementation.params);
+			implementationObj.keyframe = function(keyframeId, stateObj){
+				extend(stateObj, implementationObj.params);
 				
 				// Make really really sure the id is unique, if one is not provided
-				if (typeof implementation.id === 'undefined'){
-					implementation.id = implementation.params.id 
-										|| implementation.params.name 
-										|| parseInt(('' + Math.random()).substr(2), 10) + now();
+				if (typeof implementationObj.id === 'undefined'){
+					implementationObj.id = implementationObj.params.id || implementationObj.params.name || parseInt(('' + Math.random()).substr(2), 10) + now();
 				}
 				
+				// If this keyframe does not already exist, create it
 				if (typeof self._keyframes[keyframeId] == 'undefined'){
 					self._keyframes[keyframeId] = {};
 				}
 				
-				self._keyframes[keyframeId][implementation.id] = stateObj;
-				self._sortKeyframes();
-				self._normalizeObjectAcrossKeyframes(implementation.id);
+				// If this keyframe does not already have state info for this object, create it
+				self._keyframes[keyframeId][implementationObj.id] = stateObj;
+				
+				self._updateKeyframes(implementationObj);
 				
 				// Calculate and update the number of seconds this animation will run for
 				self._animationDuration = 
 					1000 * (self._keyFrameIds[self._keyFrameIds.length - 1] / self._params.fRate);
 				
-				return implementation;
+				return implementationObj;
 			};
 			
 			// Not all that useful, just some syntactical sugar.
-			implementation.draw = function(){
-				return implementation();
+			implementationObj.draw = function(){
+				return implementationObj();
 			};
 			
-			return implementation;
+			return implementationObj;
+		},
+		
+		_updateKeyframes: function(implementationObj){
+			this._sortKeyframes();
+			this._normalizeObjectAcrossKeyframes(implementationObj.id);
 		},
 		
 		_normalizeObjectAcrossKeyframes: function(keyframedObjId){
 			var state, prevState;
 			
 			for (state in this._keyframes){
-				if (prevState){
-					extend(
-						this._keyframes[state][keyframedObjId],
-						this._keyframes[prevState][keyframedObjId]);
-				}
+				if (this._keyframes.hasOwnProperty(state)){
+					if (prevState){
+						extend(
+							this._keyframes[state][keyframedObjId],
+							this._keyframes[prevState][keyframedObjId]);
+					}
 				
-				prevState = state;
+					prevState = state;
+				}
 			}
 		},
 		
@@ -246,7 +257,7 @@ function kapi(canvas, params){
 						Math.PI*2,
 						true
 						);
-					ctx.fillStyle = params.color || self._defaults.fillColor;
+					ctx.fillStyle = params.color || self.params.fillColor;
 					ctx.fill();
 					ctx.closePath();
 				};
