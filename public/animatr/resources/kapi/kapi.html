@@ -30,6 +30,10 @@
 				y : 50,
 				radius : 50,
 				color : '#0f0'
+			}),
+			circle2 = canvas.kapi.circle({
+				name : 'myCircle2',
+				color : '#f00'
 			});
 			
 		// Testing, testing... is this thing on?
@@ -47,6 +51,12 @@
 			x: 30
 		}).keyframe(20, {
 			x: 75
+		});
+		
+		circle2.keyframe(15, {
+			color: '#fff'
+		}).keyframe(30, {
+			color: '#000'
 		});
 		
 		console.dir(canvas.kapi);

@@ -8,7 +8,7 @@
 // kapi works by augmenting the Canvas element on the DOM.
 function kapi(canvas, params){
 	
-	var version = '0.1',
+	var version = '0.0.1',
 		defaults = {
 			fillColor : '#f0f',
 			fRate : 20
@@ -50,6 +50,12 @@ function kapi(canvas, params){
 		}
 	}
 	
+	function sortArrayNumerically(array){
+		return array.sort(function(a, b){
+			return a - b;
+		});
+	}
+	
 	return {
 		// init() is called immediately after this object is defined
 		init: function(canvas, params){
@@ -64,11 +70,12 @@ function kapi(canvas, params){
 			this.el = canvas;
 			this.ctx = canvas.getContext('2d');
 			
-			// Set some default property values
-			//this._params.fRate = this._params.fRate || 20;
+			// Initialize some internal properties
 			this._drawList = [];
-			this._keyframes = {};
 			this._keyFrameIds = [];
+			this._keyframes = {};
+			this._objStateIndex = {};
+			
 			this._animationDuration = 0;
 			
 			this.state = {
@@ -128,7 +135,7 @@ function kapi(canvas, params){
 				self._loopPosition = self._loopLength / self._animationDuration;
 				
 				// Calculate the current frame of the loop
-				self._currentFrame = parseInt(self._loopPosition * self._params.fRate, 10);
+				self._currentFrame = parseInt(self._loopPosition * self._keyFrameIds[self._keyFrameIds.length - 1], 10);
 				
 				self.ctx.clearRect(0, 0, self.el.width, self.el.height);
 				self._update(self._currentFrame);
@@ -147,39 +154,16 @@ function kapi(canvas, params){
 			}
 		},
 		
+		_calculateCurrentFrameStateProperties: function(stateObj){
+			
+		},
+		
 		pop: function(){
 			return this._drawList.pop();
 		},
 		
 		push: function(func){
 			return this._drawList.push(func);
-		},
-		
-		// Sort the keyframe properties numerically.
-		_sortKeyframes: function(){
-			var _keyframes = {}, 
-				arr = [],
-				prop,
-				i;
-			
-			for (prop in this._keyframes){
-				if (this._keyframes.hasOwnProperty(prop)){
-					arr.push(parseInt(prop, 10));
-				}
-			}
-			
-			// Sort and update the internal list of keyframe IDs
-			this._keyFrameIds = arr.sort(function(a, b){
-				return a - b;
-			});
-			
-			// Store the ordered keyframes into a temporary object
-			for (i = 0; i < arr.length; i++){
-				_keyframes[arr[i] + ''] = this._keyframes[arr[i]];
-			}
-			
-			// Set the contents of the internal _keyframes object to that of the ordered temporary object
-			this._keyframes = _keyframes;
 		},
 		
 		_keyframize: function(implementationObj){
@@ -192,7 +176,8 @@ function kapi(canvas, params){
 				
 				// Make really really sure the id is unique, if one is not provided
 				if (typeof implementationObj.id === 'undefined'){
-					implementationObj.id = implementationObj.params.id || implementationObj.params.name || parseInt(('' + Math.random()).substr(2), 10) + now();
+					implementationObj.id = 
+						implementationObj.params.id || implementationObj.params.name || parseInt(('' + Math.random()).substr(2), 10) + now();
 				}
 				
 				// If this keyframe does not already exist, create it
@@ -203,7 +188,7 @@ function kapi(canvas, params){
 				// If this keyframe does not already have state info for this object, create it
 				self._keyframes[keyframeId][implementationObj.id] = stateObj;
 				
-				self._updateKeyframes(implementationObj);
+				self._updateKeyframes(implementationObj, keyframeId);
 				
 				// Calculate and update the number of seconds this animation will run for
 				self._animationDuration = 
@@ -220,14 +205,52 @@ function kapi(canvas, params){
 			return implementationObj;
 		},
 		
-		_updateKeyframes: function(implementationObj){
+		_updateKeyframes: function(implementationObj, keyframeId){
+			this._updateKeyframeIdsList(keyframeId);
 			this._sortKeyframes();
 			this._normalizeObjectAcrossKeyframes(implementationObj.id);
+			this._updateObjStateIndex(implementationObj, { add : keyframeId });
+		},
+		
+		_updateKeyframeIdsList: function(keyframeId){
+			var i;
+			
+			for (i = 0; i < this._keyFrameIds.length; i++){
+				if (this._keyFrameIds[i] === keyframeId){
+					return;
+				}
+			}
+			
+			this._keyFrameIds.push(keyframeId);
+			sortArrayNumerically(this._keyFrameIds);
+		},
+		
+		// Sort the keyframe properties numerically.
+		_sortKeyframes: function(){
+			var _keyframes = {}, 
+				arr = [],
+				prop,
+				i;
+			
+			for (prop in this._keyframes){
+				if (this._keyframes.hasOwnProperty(prop)){
+					arr.push(parseInt(prop, 10));
+				}
+			}
+			
+			// Store the ordered keyframes into a temporary object
+			for (i = 0; i < arr.length; i++){
+				_keyframes[arr[i] + ''] = this._keyframes[arr[i]];
+			}
+			
+			// Set the contents of the internal _keyframes object to that of the ordered temporary object
+			this._keyframes = _keyframes;
 		},
 		
 		_normalizeObjectAcrossKeyframes: function(keyframedObjId){
 			var state, prevState;
 			
+			// Traverse all keyframes in the animation
 			for (state in this._keyframes){
 				if (this._keyframes.hasOwnProperty(state)){
 					if (prevState){
@@ -238,6 +261,26 @@ function kapi(canvas, params){
 				
 					prevState = state;
 				}
+			}
+		},
+		
+		_updateObjStateIndex: function(implementationObj, params){
+			var index;
+			
+			if (typeof this._objStateIndex[implementationObj.id] === 'undefined'){
+				this._objStateIndex[implementationObj.id] = [];
+			}
+			
+			index = this._objStateIndex[implementationObj.id];
+			
+			if (typeof params.add !== 'undefined'){
+				index.pop(params.add);
+				sortArrayNumerically(index);
+			}
+			
+			// TODO:  Fill this in and test it!
+			if (typeof params.remove !== 'undefined'){
+				
 			}
 		},
 		
