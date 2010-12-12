@@ -46,7 +46,7 @@ function kapi(canvas, params){
 		rangeEnd -= smaller;
 		num -= smaller;
 		
-		// Prevent divide by zero!
+		// Prevent divide by zero
 		if (rangeEnd || rangeBegin){
 			return num / (rangeEnd || rangeBegin);
 		} else {
@@ -54,22 +54,15 @@ function kapi(canvas, params){
 		}
 	}
 	
-	
-	// GRRR this doesn't work
 	function valAtPointInRange(position, rangeBegin, rangeEnd){
 		var smaller = smallerNumOf(rangeBegin, rangeEnd),
-			larger = largerNumOf(rangeBegin, rangeEnd);
+			larger = largerNumOf(rangeBegin, rangeEnd),
+			diff = difference(rangeBegin, rangeEnd),
+			val;
+			
+		val = diff * position;
 		
-		if (rangeEnd > smaller){
-			rangeEnd -= smaller;
-		}
-		
-		if (larger >= 0){
-			return rangeBegin + (position * rangeEnd);
-		} else {
-			//return (Math.abs(rangeEnd) - (position * rangeBegin));
-			//return ((rangeEnd) + (position * Math.abs(rangeBegin)));
-		}
+		return larger > 0 ? smaller + val : larger - val;
 	}
 	
 	// Adapted from the book, "JavaScript Patterns" by Stoyan Stefanov
