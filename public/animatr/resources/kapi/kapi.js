@@ -22,8 +22,54 @@ function kapi(canvas, params){
 		this[dim] = this.style[dim].replace(/px/gi, '') || this._params[dim];
 	}
 	
+	// Get UNIX epoch time
 	function now(){
 		return + new Date();
+	}
+	
+	// Find the difference between two numbers
+	function difference(a, b){
+		return +a > +b ? a - b : b - a;
+	}
+	
+	function largerNumOf(a, b){
+		return +a > +b ? a : b;
+	}
+	
+	function smallerNumOf(a, b){
+		return +a < +b ? a : b;
+	}
+	
+	function mapToRange(num, rangeBegin, rangeEnd){
+		var smaller = smallerNumOf(rangeBegin, rangeEnd);
+		
+		rangeEnd -= smaller;
+		num -= smaller;
+		
+		// Prevent divide by zero!
+		if (rangeEnd || rangeBegin){
+			return num / (rangeEnd || rangeBegin);
+		} else {
+			return num;
+		}
+	}
+	
+	
+	// GRRR this doesn't work
+	function valAtPointInRange(position, rangeBegin, rangeEnd){
+		var smaller = smallerNumOf(rangeBegin, rangeEnd),
+			larger = largerNumOf(rangeBegin, rangeEnd);
+		
+		if (rangeEnd > smaller){
+			rangeEnd -= smaller;
+		}
+		
+		if (larger >= 0){
+			return rangeBegin + (position * rangeEnd);
+		} else {
+			//return (Math.abs(rangeEnd) - (position * rangeBegin));
+			//return ((rangeEnd) + (position * Math.abs(rangeBegin)));
+		}
 	}
 	
 	// Adapted from the book, "JavaScript Patterns" by Stoyan Stefanov
@@ -147,27 +193,54 @@ function kapi(canvas, params){
 		
 		// Handle low-level drawing logic
 		_update: function(currentFrame){
-			var i;
+			var i, objStateIndices;
 			
-			this._calculateCurrentFrameStateProperties();
+			for(objStateIndices in this._objStateIndex){
+				if (this._objStateIndex.hasOwnProperty(objStateIndices)){
+					
+					// The current object may have a first keyframe greater than 0.
+					// If so, we don't want to calculate or draw it until we have
+					// reached this object's first keyframe
+					if (typeof this._objStateIndex[objStateIndices][0] !== 'undefined'
+						&& this._currentFrame >= this._objStateIndex[objStateIndices][0]){
+						this._calculateCurrentFrameStateProperties(objStateIndices);
+					}
+				}
+			}
 			
+			
+			// Might not be needed anymore?
 			for (i = 0; i < this._drawList.length; i++){
 				this._drawList[i].call(this, this.ctx);
 			}
 		},
 		
 		_calculateCurrentFrameStateProperties: function(stateObj){
+			
 			var self = this,
-				latestKeyframeId = this._getLatestKeyFrameId(),
-				nextKeyframeId = this._getNextKeyframeId(latestKeyframeId);
+				stateObjKeyframeIndex = this._objStateIndex[stateObj],
+				latestKeyframeId = this._getLatestKeyFrameId(stateObjKeyframeIndex),
+				nextKeyframeId = this._getNextKeyframeId(stateObjKeyframeIndex, latestKeyframeId),
+				latestKeyframeProps = this._keyframes[stateObjKeyframeIndex[latestKeyframeId]][stateObj],
+				nextKeyframeProps = this._keyframes[stateObjKeyframeIndex[nextKeyframeId]][stateObj],
+				positionBetweenKeyframes = mapToRange(this._currentFrame, stateObjKeyframeIndex[latestKeyframeId], stateObjKeyframeIndex[nextKeyframeId]),
+				currentFrameProps = {},
+				prop, val;
+				
+			
+			for (prop in latestKeyframeProps){
+				// mapToRange(num, rangeBegin, rangeEnd)
+				
+			}
+				
 		},
 		
-		_getLatestKeyFrameId: function(){
+		_getLatestKeyFrameId: function(lookup){
 			var i;
 			
-			for (i = this._keyframeIds.length - 1; i >= 0; i--){
-				if (this._keyframeIds[i] < this._currentFrame){
-					if (i === this._keyframeIds.length - 1){
+			for (i = lookup.length - 1; i >= 0; i--){
+				if (lookup[i] < this._currentFrame){
+					if (i === lookup.length - 1){
 						return 0;
 					} else {
 						return i;
@@ -175,11 +248,11 @@ function kapi(canvas, params){
 				}
 			}
 			
-			return this._keyframeIds.length - 1;
+			return lookup.length - 1;
 		},
 		
-		_getNextKeyframeId: function(latestKeyframeId){
-			return latestKeyframeId === this._keyframeIds.length - 1
+		_getNextKeyframeId: function(lookup, latestKeyframeId){
+			return latestKeyframeId === lookup.length - 1
 				? 0
 				: latestKeyframeId + 1;
 		},

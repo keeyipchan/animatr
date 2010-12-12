@@ -18,7 +18,7 @@
 	<script type="text/javascript">
 				
 		var canvas = kapi(document.getElementById('myCanvas'), {
-				fRate : 20,
+				fRate : 5,
 				styles : {
 					'height':  '300px',
 					'width': '500px',
@@ -46,19 +46,21 @@
 		canvas.kapi.start();
 		
 		// Testing the API.  Purposely out of order, to show it can be done.
+		//*
 		circle.keyframe(0, {
 			x: 120
 		}).keyframe(5, {
 			x: 30
 		}).keyframe(20, {
 			x: 75
-		});
+		});//*/
 		
-		/*circle2.keyframe(15, {
+		/*
+		circle2.keyframe(15, {
 			color: '#fff'
 		}).keyframe(30, {
 			color: '#000'
-		});*/
+		});//*/
 		
 		console.dir(canvas.kapi);
 		
