@@ -36,16 +36,8 @@
 				name : 'myCircle2',
 				color : '#f00'
 			});
-			
-		// Testing, testing... is this thing on?
-		canvas.kapi.push(function(ctx){
-			
-			//circle();
-		});
 		
-		canvas.kapi.start();
-		
-		// Testing the API.  Purposely out of order, to show it can be done.
+		// Testing the API.
 		circle.keyframe(0, {
 			x: 0
 		}).keyframe(10, {
@@ -57,14 +49,19 @@
 			radius: 100
 		});
 		
-		/*
-		circle2.keyframe(15, {
-			color: '#fff'
+		circle2.keyframe(0, {
+			x: 10,
+			y: 10,
+			radius: 10
 		}).keyframe(30, {
-			color: '#000'
-		});//*/
+			x: 400,
+			y: 400,
+			radius: 100
+		});
 		
-		console.dir(canvas.kapi);
+		canvas.kapi.start();
+		
+		//console.dir(canvas.kapi);
 		
 	</script>
 

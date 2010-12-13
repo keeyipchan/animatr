@@ -32,10 +32,12 @@ function kapi(canvas, params){
 		return +a > +b ? a - b : b - a;
 	}
 	
+	// This is unnecesary, use Math.max: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Math/max
 	function largerNumOf(a, b){
 		return +a > +b ? a : b;
 	}
 	
+	// See above
 	function smallerNumOf(a, b){
 		return +a < +b ? a : b;
 	}
