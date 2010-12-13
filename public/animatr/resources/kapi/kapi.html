@@ -18,7 +18,7 @@
 	<script type="text/javascript">
 				
 		var canvas = kapi(document.getElementById('myCanvas'), {
-				fRate : 5,
+				fRate : 30,
 				styles : {
 					'height':  '300px',
 					'width': '500px',
@@ -27,8 +27,8 @@
 			}),
 			circle = canvas.kapi.circle({
 				name : 'myCircle',
-				x : 50,
-				y : 50,
+				x : 0,
+				y : 0,
 				radius : 50,
 				color : '#0f0'
 			}),
@@ -40,20 +40,22 @@
 		// Testing, testing... is this thing on?
 		canvas.kapi.push(function(ctx){
 			
-			circle();
+			//circle();
 		});
 		
 		canvas.kapi.start();
 		
 		// Testing the API.  Purposely out of order, to show it can be done.
-		//*
 		circle.keyframe(0, {
-			x: 120
-		}).keyframe(5, {
-			x: 30
-		}).keyframe(20, {
-			x: 75
-		});//*/
+			x: 0
+		}).keyframe(10, {
+			x: 100,
+			y: 50
+		}).keyframe(30, {
+			x: 200,
+			y: 150,
+			radius: 100
+		});
 		
 		/*
 		circle2.keyframe(15, {

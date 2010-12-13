@@ -40,6 +40,12 @@ function kapi(canvas, params){
 		return +a < +b ? a : b;
 	}
 	
+	// Inspired by the map() method in Processing.js: http://processingjs.org/reference/map_
+	function map(value, low1, high1, low2, high2){
+		value = mapToRange(value, low1, high1);
+		return valAtPointInRange(value, low2, high2);
+	}
+	
 	function mapToRange(num, rangeBegin, rangeEnd){
 		var smaller = smallerNumOf(rangeBegin, rangeEnd);
 		
@@ -186,7 +192,7 @@ function kapi(canvas, params){
 		
 		// Handle low-level drawing logic
 		_update: function(currentFrame){
-			var i, objStateIndices;
+			var i, objStateIndices, currentFrameStateProperties;
 			
 			for(objStateIndices in this._objStateIndex){
 				if (this._objStateIndex.hasOwnProperty(objStateIndices)){
@@ -194,10 +200,15 @@ function kapi(canvas, params){
 					// The current object may have a first keyframe greater than 0.
 					// If so, we don't want to calculate or draw it until we have
 					// reached this object's first keyframe
-					if (typeof this._objStateIndex[objStateIndices][0] !== 'undefined'
-						&& this._currentFrame >= this._objStateIndex[objStateIndices][0]){
-						this._calculateCurrentFrameStateProperties(objStateIndices);
+					if (typeof this._objStateIndex[objStateIndices][0] !== 'undefined' && this._currentFrame >= this._objStateIndex[objStateIndices][0]){
+						currentFrameStateProperties = this._calculateCurrentFrameStateProperties(objStateIndices);
+						
+						
+						// REALLY BAD CODE THAT DOES NOT BELONG.
+						// DELETE THIS.  IT IS FOR TEST/DEMONSTRATION PURPOSES.
+						this.circle(currentFrameStateProperties).draw(currentFrameStateProperties);
 					}
+					
 				}
 			}
 			
@@ -208,6 +219,8 @@ function kapi(canvas, params){
 			}
 		},
 		
+		// TODO:  This may in fact be the ugliest function ever written.
+		// Make it faster and easier to follow.
 		_calculateCurrentFrameStateProperties: function(stateObj){
 			
 			var self = this,
@@ -218,14 +231,25 @@ function kapi(canvas, params){
 				nextKeyframeProps = this._keyframes[stateObjKeyframeIndex[nextKeyframeId]][stateObj],
 				positionBetweenKeyframes = mapToRange(this._currentFrame, stateObjKeyframeIndex[latestKeyframeId], stateObjKeyframeIndex[nextKeyframeId]),
 				currentFrameProps = {},
-				prop, val;
+				prop;
 				
 			
 			for (prop in latestKeyframeProps){
-				// mapToRange(num, rangeBegin, rangeEnd)
-				
+
+				// TODO:  This needs to accept more than just numbers.
+				// Example: Strings that represent colors should fade to the correct in-between color.
+				if (latestKeyframeProps.hasOwnProperty(prop) && typeof latestKeyframeProps[prop] === 'number'){
+					currentFrameProps[prop] = map(
+							this._currentFrame,
+							stateObjKeyframeIndex[latestKeyframeId],
+							stateObjKeyframeIndex[nextKeyframeId],
+							latestKeyframeProps[prop],
+							nextKeyframeProps[prop]);
+				}
 			}
-				
+			
+			extend(currentFrameProps, latestKeyframeProps);
+			return currentFrameProps;		
 		},
 		
 		_getLatestKeyFrameId: function(lookup){
@@ -245,9 +269,7 @@ function kapi(canvas, params){
 		},
 		
 		_getNextKeyframeId: function(lookup, latestKeyframeId){
-			return latestKeyframeId === lookup.length - 1
-				? 0
-				: latestKeyframeId + 1;
+			return latestKeyframeId === lookup.length - 1 ? 0 : latestKeyframeId + 1;
 		},
 		
 		pop: function(){
@@ -265,6 +287,7 @@ function kapi(canvas, params){
 			// It should accept strings.
 			implementationObj.keyframe = function(keyframeId, stateObj){
 				extend(stateObj, implementationObj.params);
+				stateObj._params = implementationObj.params;
 				
 				// Make really really sure the id is unique, if one is not provided
 				if (typeof implementationObj.id === 'undefined'){
@@ -290,8 +313,8 @@ function kapi(canvas, params){
 			};
 			
 			// Not all that useful, just some syntactical sugar.
-			implementationObj.draw = function(){
-				return implementationObj();
+			implementationObj.draw = function(params){
+				return implementationObj(params);
 			};
 			
 			return implementationObj;
@@ -340,7 +363,7 @@ function kapi(canvas, params){
 		},
 		
 		_normalizeObjectAcrossKeyframes: function(keyframedObjId){
-			var state, prevState;
+			var state, prevState, tempParams;
 			
 			// Traverse all keyframes in the animation
 			for (state in this._keyframes){
@@ -382,7 +405,7 @@ function kapi(canvas, params){
 				
 				// TODO:  _circle's implementation is that of a bitmap.
 				// It should be an SVG.
-				_circle = function(){
+				_circle = function(params){
 					ctx.beginPath();
 					ctx.arc(
 						params.x || 0,
