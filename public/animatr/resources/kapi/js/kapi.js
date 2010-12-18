@@ -6,7 +6,7 @@
 
 
 // kapi works by augmenting the Canvas element on the DOM.
-function kapi(canvas, params){
+function kapi(canvas, params, events){
 	
 	var version = '0.0.1',
 		defaults = {
@@ -29,48 +29,23 @@ function kapi(canvas, params){
 	
 	// Find the difference between two numbers
 	function difference(a, b){
-		return +a > +b ? a - b : b - a;
-	}
-	
-	// This is unnecesary, use Math.max: https://developer.mozilla.org/en/JavaScript/Reference/Global_Objects/Math/max
-	function largerNumOf(a, b){
-		return +a > +b ? a : b;
-	}
-	
-	// See above
-	function smallerNumOf(a, b){
-		return +a < +b ? a : b;
+		return Math.max(a, b) - Math.min(a, b);
 	}
 	
 	// Inspired by the map() method in Processing.js: http://processingjs.org/reference/map_
 	function map(value, low1, high1, low2, high2){
-		value = mapToRange(value, low1, high1);
-		return valAtPointInRange(value, low2, high2);
+		value = norm(value, low1, high1);
+		return lerp(value, low2, high2);
 	}
 	
-	function mapToRange(num, rangeBegin, rangeEnd){
-		var smaller = smallerNumOf(rangeBegin, rangeEnd);
-		
-		rangeEnd -= smaller;
-		num -= smaller;
-		
-		// Prevent divide by zero
-		if (rangeEnd || rangeBegin){
-			return num / (rangeEnd || rangeBegin);
-		} else {
-			return num;
-		}
+	// Copied from Proccessing.js's norm function: http://processingjs.org/reference/norm()
+	function norm(num, rangeBegin, rangeEnd){
+		return (num - rangeBegin) / (rangeEnd - rangeBegin);
 	}
 	
-	function valAtPointInRange(position, rangeBegin, rangeEnd){
-		var smaller = smallerNumOf(rangeBegin, rangeEnd),
-			larger = largerNumOf(rangeBegin, rangeEnd),
-			diff = difference(rangeBegin, rangeEnd),
-			val;
-			
-		val = diff * position;
-		
-		return larger > 0 ? smaller + val : larger - val;
+	// Copied from Proccessing.js's lerp function: http://processingjs.org/reference/lerp()
+	function lerp(position, rangeBegin, rangeEnd){
+		return ((rangeEnd - rangeBegin) * position) + rangeBegin;		
 	}
 	
 	// Adapted from the book, "JavaScript Patterns" by Stoyan Stefanov
@@ -105,7 +80,7 @@ function kapi(canvas, params){
 	
 	return {
 		// init() is called immediately after this object is defined
-		init: function(canvas, params){
+		init: function(canvas, params, events){
 			var style, kapi;
 			
 			// Augment the canvas element
@@ -114,6 +89,7 @@ function kapi(canvas, params){
 			params = params || {};
 			extend(params, defaults);
 			this._params = params;
+			this.events = events;
 			this.el = canvas;
 			this.ctx = canvas.getContext('2d');
 			
@@ -185,6 +161,11 @@ function kapi(canvas, params){
 				self._currentFrame = parseInt(self._loopPosition * self._keyframeIds[self._keyframeIds.length - 1], 10);
 				
 				self.ctx.clearRect(0, 0, self.el.width, self.el.height);
+				
+				if (typeof self.events.enterFrame === 'function'){
+					self.events.enterFrame.call(self);
+				}
+				
 				self._update(self._currentFrame);
 				self.update();
 			}, 1000 / this._params.fRate);
@@ -210,7 +191,6 @@ function kapi(canvas, params){
 						// DELETE THIS.  IT IS FOR TEST/DEMONSTRATION PURPOSES.
 						this.circle(currentFrameStateProperties).draw(currentFrameStateProperties);
 					}
-					
 				}
 			}
 			
@@ -227,11 +207,11 @@ function kapi(canvas, params){
 			
 			var self = this,
 				stateObjKeyframeIndex = this._objStateIndex[stateObj],
-				latestKeyframeId = this._getLatestKeyFrameId(stateObjKeyframeIndex),
-				nextKeyframeId = this._getNextKeyframeId(stateObjKeyframeIndex, latestKeyframeId),
+				latestKeyframeId = this._getLatestKeyFrameId( stateObjKeyframeIndex ),
+				nextKeyframeId = this._getNextKeyframeId( stateObjKeyframeIndex, latestKeyframeId ),
 				latestKeyframeProps = this._keyframes[stateObjKeyframeIndex[latestKeyframeId]][stateObj],
 				nextKeyframeProps = this._keyframes[stateObjKeyframeIndex[nextKeyframeId]][stateObj],
-				positionBetweenKeyframes = mapToRange(this._currentFrame, stateObjKeyframeIndex[latestKeyframeId], stateObjKeyframeIndex[nextKeyframeId]),
+				positionBetweenKeyframes = norm( this._currentFrame, stateObjKeyframeIndex[latestKeyframeId], stateObjKeyframeIndex[nextKeyframeId] ),
 				currentFrameProps = {},
 				prop;
 				
@@ -426,5 +406,5 @@ function kapi(canvas, params){
 			
 			return this._keyframize(_circle);
 		}
-	}.init(canvas, params);
+	}.init(canvas, params, events);
 }
