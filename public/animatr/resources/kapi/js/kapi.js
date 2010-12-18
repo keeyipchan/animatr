@@ -94,7 +94,6 @@ function kapi(canvas, params, events){
 			this.ctx = canvas.getContext('2d');
 			
 			// Initialize some internal properties
-			this._drawList = [];
 			this._keyframeIds = [];
 			this._keyframes = {};
 			this._objStateIndex = {};
@@ -129,13 +128,41 @@ function kapi(canvas, params, events){
 			return version;
 		},
 		
-		start: function(){
-			this._loopStartTime = this._startTime = now();
+		isPlaying: function(){
+			return (this._isStopped === false && this._isPaused === false);
+		},
+		
+		play: function(){
+			if (this.isPlaying()){
+				return;
+			}
+			
+			this._isStopped = this._isPaused = false;
+			
+			if (!this._startTime){
+				this._startTime = now();
+			}
+			
+			if (this._loopStartTime){
+				this._loopStartTime += now() - this._pausedAtTime;
+			} else {
+				this._loopStartTime = now();
+			}
+			
 			this.update();
+		},
+		
+		pause: function(){
+			clearTimeout(this._updateHandle);
+			this._pausedAtTime = now();
+			this._isPaused = true;
 		},
 		
 		stop: function(){
 			clearTimeout(this._updateHandle);
+			delete this._loopStartTime;
+			delete this._pausedAtTime;
+			this._isStopped = true;
 		},
 		
 		// Handle high-level frame management logic
@@ -193,12 +220,6 @@ function kapi(canvas, params, events){
 					}
 				}
 			}
-			
-			
-			// Might not be needed anymore?
-			for (i = 0; i < this._drawList.length; i++){
-				this._drawList[i].call(this, this.ctx);
-			}
 		},
 		
 		// TODO:  This may in fact be the ugliest function ever written.
@@ -252,14 +273,6 @@ function kapi(canvas, params, events){
 		
 		_getNextKeyframeId: function(lookup, latestKeyframeId){
 			return latestKeyframeId === lookup.length - 1 ? 0 : latestKeyframeId + 1;
-		},
-		
-		pop: function(){
-			return this._drawList.pop();
-		},
-		
-		push: function(func){
-			return this._drawList.push(func);
 		},
 		
 		_keyframize: function(implementationObj){

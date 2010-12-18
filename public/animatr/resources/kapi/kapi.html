@@ -29,7 +29,8 @@
 	
 	<ul>
 		<li id="currentFrame">Current frame <span></span></li>
-		<li><a id="start" href="javascript:void(0);">Start</a></li>
+		<li><a id="play" href="javascript:void(0);">Play</a></li>
+		<li><a id="pause" href="javascript:void(0);">Pause</a></li>
 		<li><a id="stop" href="javascript:void(0);">Stop</a></li>
 	</ul>
 	
@@ -37,14 +38,19 @@
 	
 		// Note:  jQuery is here just to make the demo quicker to make.
 		// Kapi does not use jQuery.
-		$('#start').click(function(ev){
+		$('#play').click(function(ev){
 			ev.preventDefault();
-			canvas.kapi.start()
+			canvas.kapi.play();
+		});
+		
+		$('#pause').click(function(ev){
+			ev.preventDefault();
+			canvas.kapi.pause();
 		});
 		
 		$('#stop').click(function(ev){
 			ev.preventDefault();
-			canvas.kapi.stop()
+			canvas.kapi.stop();
 		});
 				
 		var canvas = kapi(document.getElementById('myCanvas'), 
@@ -63,7 +69,7 @@
 					currFrameOutput.html(this._currentFrame);
 				}
 			}),
-			circle = canvas.kapi.circle({
+			circle = canvas.kapi.circle({	
 				name : 'myCircle',
 				x : 0,
 				y : 0,
@@ -98,7 +104,7 @@
 			radius: 100
 		});
 		
-		canvas.kapi.start();
+		canvas.kapi.play();
 		
 		console.dir(canvas.kapi);
 		
