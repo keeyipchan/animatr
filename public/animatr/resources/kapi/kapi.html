@@ -36,6 +36,38 @@
 	
 	<script type="text/javascript">
 	
+		function circle(ctx){
+			ctx.beginPath();
+			ctx.arc(
+				this.x || 0,
+				this.y || 0,
+				this.radius || 0,
+				0,
+				Math.PI*2,
+				true
+				);
+			ctx.fillStyle = this.color || '#f0f';
+			ctx.fill();
+			ctx.closePath();
+			
+			return this;
+		}
+		
+		
+		function square(ctx){
+			ctx.beginPath();
+			
+			ctx.moveTo(this.x, this.y);
+			ctx.lineTo(this.x + this.width, this.y);
+			ctx.lineTo(this.x + this.width, this.y + this.height);
+			ctx.lineTo(this.x, this.y + this.height);
+			
+			ctx.fillStyle = ctx.strokeStyle = this.color || '#f0f';
+			ctx.fill();
+			ctx.stroke();
+			ctx.closePath();
+		}
+	
 		// Note:  jQuery is here just to make the demo quicker to make.
 		// Kapi does not use jQuery.
 		$('#play').click(function(ev){
@@ -56,7 +88,7 @@
 		var canvas = kapi(document.getElementById('myCanvas'), 
 			// params
 			{
-				fRate : 30,
+				fRate : 20,
 				styles : {
 					'height':  '300px',
 					'width': '500px',
@@ -69,39 +101,57 @@
 					currFrameOutput.html(this._currentFrame);
 				}
 			}),
-			circle = canvas.kapi.circle({	
+			kapi = canvas.kapi,
+			circle1 = kapi.add(circle, {	
 				name : 'myCircle',
 				x : 0,
 				y : 0,
 				radius : 50,
 				color : '#0f0'
 			}),
-			circle2 = canvas.kapi.circle({
+			circle2 = kapi.add(circle, {
 				name : 'myCircle2',
 				color : '#f00'
+			}),
+			square1 = kapi.add(square, {
+				name : 'square1',
+				height : 75,
+				width : 75,
+				x : 200,
+				y : 200,
+				color : '#00f'
 			}),
 			currFrameOutput = $('#currentFrame span');
 		
 		// Testing the API.
-		circle.keyframe(0, {
-			x: 0
+		circle1.keyframe(0, {
+			x : 0
 		}).keyframe(10, {
-			x: 100,
-			y: 50
+			x : 10,
+			y : 50
 		}).keyframe(30, {
-			x: 200,
-			y: 150,
-			radius: 100
+			x : 200,
+			y : 150,
+			radius : 100
 		});
 		
 		circle2.keyframe(0, {
-			x: 400,
-			y: 200,
+			x : 400,
+			y : 200,
 			radius: 10
 		}).keyframe(30, {
-			x: 10,
-			y: 10,
-			radius: 100
+			x : 10,
+			y : 10,
+			radius : 100
+		});
+		
+		square1.keyframe(0, {
+			x : 15
+		}).keyframe(15, {
+			x : 300,
+			y : 30
+		}).keyframe(30, {
+			y : 250
 		});
 		
 		canvas.kapi.play();

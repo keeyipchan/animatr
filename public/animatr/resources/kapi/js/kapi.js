@@ -1,7 +1,7 @@
 /*  Kapi - Keyframe API (for canvas)
  *  jeremyckahn@gmail.com
  * 
- * A lightweight wrapper and keyframe interface for the HTML 5 canvas.
+ * A keyframe interface for the HTML 5 canvas.
  */
 
 
@@ -212,11 +212,7 @@ function kapi(canvas, params, events){
 					// reached this object's first keyframe
 					if (typeof this._objStateIndex[objStateIndices][0] !== 'undefined' && this._currentFrame >= this._objStateIndex[objStateIndices][0]){
 						currentFrameStateProperties = this._calculateCurrentFrameStateProperties(objStateIndices);
-						
-						
-						// REALLY BAD CODE THAT DOES NOT BELONG.
-						// DELETE THIS.  IT IS FOR TEST/DEMONSTRATION PURPOSES.
-						this.circle(currentFrameStateProperties).draw(currentFrameStateProperties);
+						currentFrameStateProperties.prototype.draw.call(currentFrameStateProperties, this.ctx);
 					}
 				}
 			}
@@ -275,43 +271,49 @@ function kapi(canvas, params, events){
 			return latestKeyframeId === lookup.length - 1 ? 0 : latestKeyframeId + 1;
 		},
 		
+		add: function(implementationFunc, initialParams){
+			var inst = {};
+			inst.draw = implementationFunc;
+			inst.params = initialParams;
+			
+			return this._keyframize(inst, initialParams);
+		},
+		
 		_keyframize: function(implementationObj){
 			var self = this;
-			
+
 			// TODO:  keyframe() blows up if given a keyframeId that is a string.
 			// It should accept strings.
 			implementationObj.keyframe = function(keyframeId, stateObj){
+				//stateObj.draw = implementationObj;
+				stateObj.prototype = this;
+				
 				extend(stateObj, implementationObj.params);
 				stateObj._params = implementationObj.params;
-				
+
 				// Make really really sure the id is unique, if one is not provided
 				if (typeof implementationObj.id === 'undefined'){
 					implementationObj.id = 
 						implementationObj.params.id || implementationObj.params.name || parseInt(('' + Math.random()).substr(2), 10) + now();
 				}
-				
+
 				// If this keyframe does not already exist, create it
 				if (typeof self._keyframes[keyframeId] == 'undefined'){
 					self._keyframes[keyframeId] = {};
 				}
-				
+
 				// If this keyframe does not already have state info for this object, create it
 				self._keyframes[keyframeId][implementationObj.id] = stateObj;
-				
+
 				self._updateKeyframes(implementationObj, keyframeId);
-				
+
 				// Calculate and update the number of seconds this animation will run for
 				self._animationDuration = 
 					1000 * (self._keyframeIds[self._keyframeIds.length - 1] / self._params.fRate);
-				
-				return implementationObj;
+
+				return this;
 			};
-			
-			// Not all that useful, just some syntactical sugar.
-			implementationObj.draw = function(params){
-				return implementationObj(params);
-			};
-			
+
 			return implementationObj;
 		},
 		
@@ -362,6 +364,10 @@ function kapi(canvas, params, events){
 			
 			// Traverse all keyframes in the animation
 			for (state in this._keyframes){
+				
+				// BUG:  If the last keyframe for an keyframedObj doesn't have
+				// a property that a previous frame does, it inherits the initial
+				// value for the property instead of the previous keyframe's.
 				if (this._keyframes.hasOwnProperty(state)){
 					if (prevState){
 						extend(
@@ -392,32 +398,7 @@ function kapi(canvas, params, events){
 			if (typeof params.remove !== 'undefined'){
 				
 			}
-		},
-		
-		circle: function(params){
-			var self = this,
-				ctx = params.context || this.ctx,
-				
-				// TODO:  _circle's implementation is that of a bitmap.
-				// It should be an SVG.
-				_circle = function(params){
-					ctx.beginPath();
-					ctx.arc(
-						params.x || 0,
-						params.y || 0,
-						params.radius || 0,
-						0,
-						Math.PI*2,
-						true
-						);
-					ctx.fillStyle = params.color || self.params.fillColor;
-					ctx.fill();
-					ctx.closePath();
-				};
-				
-				_circle.params = params;
-			
-			return this._keyframize(_circle);
 		}
+		
 	}.init(canvas, params, events);
 }
